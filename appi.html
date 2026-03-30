@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NQT Prep — AI-Powered TCS Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f8;
+    --text2: #8888aa;
+    --text3: #5555770;
+    --accent: #7c6aff;
+    --accent2: #a78bfa;
+    --teal: #2dd4bf;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --green: #4ade80;
+    --green-bg: rgba(74,222,128,0.08);
+    --green-border: rgba(74,222,128,0.25);
+    --red-bg: rgba(248,113,113,0.08);
+    --red-border: rgba(248,113,113,0.25);
+    --blue-bg: rgba(124,106,255,0.08);
+    --blue-border: rgba(124,106,255,0.25);
+    --amber-bg: rgba(251,191,36,0.08);
+    --amber-border: rgba(251,191,36,0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* ─── LANDING PAGE ─── */
+  #landing {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2rem; position: relative; overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,106,255,0.15) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-60%); pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute; width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 70%);
+    bottom: 10%; right: 10%; pointer-events: none;
+  }
+  .logo-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: 99px; padding: 6px 16px; font-size: 12px; font-weight: 500;
+    color: var(--accent2); letter-spacing: 0.05em; margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  h1.hero {
+    font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800; line-height: 1.05; text-align: center; max-width: 700px;
+    margin-bottom: 1.25rem; animation: fadeUp 0.6s 0.1s ease both;
+  }
+  h1.hero span { color: var(--accent2); }
+  .hero-sub {
+    font-size: 1.1rem; color: var(--text2); text-align: center; max-width: 480px;
+    line-height: 1.65; margin-bottom: 2.5rem; animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.6s 0.3s ease both; }
+  .btn-primary {
+    padding: 14px 32px; background: var(--accent); border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.01em;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 32px rgba(124,106,255,0.35); }
+  .btn-secondary {
+    padding: 14px 32px; background: transparent; border: 0.5px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-size: 15px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--surface2); border-color: var(--accent); }
+
+  .feature-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; max-width: 700px; width: 100%; margin-top: 3rem;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+  .feat-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 16px; transition: border-color 0.2s;
+  }
+  .feat-card:hover { border-color: var(--border2); }
+  .feat-icon { font-size: 20px; margin-bottom: 8px; }
+  .feat-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .feat-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* ─── CONFIG PAGE ─── */
+  #config {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2rem;
+  }
+  .config-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 20px; padding: 2rem; max-width: 560px; width: 100%;
+    animation: fadeUp 0.4s ease both;
+  }
+  .config-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
+  .config-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.75rem; }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .chip {
+    padding: 7px 16px; border-radius: 8px; border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text2); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .chip.active { background: var(--blue-bg); border-color: var(--accent); color: var(--accent2); }
+  .api-row { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .api-input {
+    flex: 1; padding: 10px 14px; background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-size: 13px; font-family: 'DM Mono', monospace;
+    outline: none; transition: border-color 0.2s;
+  }
+  .api-input:focus { border-color: var(--accent); }
+  .api-input::placeholder { color: var(--text2); }
+  .num-row { display: flex; gap: 8px; margin-bottom: 1.75rem; }
+  .num-btn {
+    flex: 1; padding: 10px; border-radius: 8px; border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text2); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .num-btn:hover { border-color: var(--accent); color: var(--text); }
+  .num-btn.active { background: var(--blue-bg); border-color: var(--accent); color: var(--accent2); }
+  .start-btn {
+    width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .start-btn:hover:not(:disabled) { background: var(--accent2); }
+  .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── LOADING ─── */
+  #loading {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 20px; padding: 2rem;
+  }
+  .loader-ring {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 2px solid var(--border2); border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; }
+  .load-sub { font-size: 13px; color: var(--text2); }
+  .load-dots span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin: 0 3px; animation: dot 1.2s infinite;
+  }
+  .load-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .load-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot { 0%,80%,100%{transform:scale(0);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+
+  /* ─── QUIZ PAGE ─── */
+  #quiz { min-height: 100vh; display: flex; flex-direction: column; }
+  .quiz-topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .quiz-meta { display: flex; align-items: center; gap: 12px; }
+  .quiz-brand { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .sec-pill {
+    padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .sec-num { background: var(--amber-bg); color: var(--amber); border: 0.5px solid var(--amber-border); }
+  .sec-ver { background: var(--blue-bg); color: var(--accent2); border: 0.5px solid var(--blue-border); }
+  .sec-rea { background: rgba(45,212,191,0.08); color: var(--teal); border: 0.5px solid rgba(45,212,191,0.25); }
+  .sec-cod { background: var(--green-bg); color: var(--green); border: 0.5px solid var(--green-border); }
+  .timer {
+    font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500;
+    padding: 6px 16px; border-radius: 8px; background: var(--surface);
+    border: 0.5px solid var(--border2); color: var(--text); min-width: 80px; text-align: center;
+  }
+  .timer.warn { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+  .progress-track { height: 3px; background: var(--border); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--teal)); transition: width 0.4s; }
+
+  .quiz-body { flex: 1; display: grid; grid-template-columns: 1fr 200px; min-height: 0; }
+  @media(max-width:680px) { .quiz-body { grid-template-columns: 1fr; } .palette-col { display: none; } }
+
+  .q-col { padding: 28px 24px; overflow-y: auto; }
+  .q-number { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-bottom: 6px; letter-spacing: 0.05em; }
+  .q-text { font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.65; color: var(--text); margin-bottom: 1.25rem; font-weight: 400; }
+  .q-code {
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: 10px; padding: 14px 16px; font-family: 'DM Mono', monospace;
+    font-size: 12.5px; color: #c4c4e8; line-height: 1.6; white-space: pre;
+    overflow-x: auto; margin-bottom: 1.25rem;
+    border-left: 2px solid var(--accent);
+  }
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn {
+    text-align: left; background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: 12px; padding: 12px 16px; font-size: 14px; color: var(--text);
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 12px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--blue-bg); }
+  .opt-btn .opt-key {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--surface2);
+    border: 0.5px solid var(--border2); font-size: 11px; font-weight: 600; color: var(--text2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'DM Mono', monospace;
+  }
+  .opt-btn.selected { background: var(--blue-bg); border-color: var(--accent); }
+  .opt-btn.selected .opt-key { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .opt-btn.correct { background: var(--green-bg); border-color: var(--green-border); }
+  .opt-btn.correct .opt-key { background: var(--green); border-color: var(--green); color: #0a0a0f; }
+  .opt-btn.wrong { background: var(--red-bg); border-color: var(--red-border); }
+  .opt-btn.wrong .opt-key { background: var(--red); border-color: var(--red); color: #0a0a0f; }
+  .opt-btn:disabled { cursor: default; }
+  .exp-box {
+    margin-top: 16px; padding: 14px 16px; background: var(--surface2);
+    border-left: 2px solid var(--accent); border-radius: 0 10px 10px 0;
+    font-size: 13px; color: var(--text2); line-height: 1.65;
+    animation: fadeIn 0.3s ease;
+  }
+  .exp-label { font-size: 11px; font-weight: 600; color: var(--accent2); letter-spacing: 0.05em; margin-bottom: 4px; }
+
+  .palette-col { padding: 20px 14px; border-left: 0.5px solid var(--border); background: var(--surface); }
+  .pal-label { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .pal-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; margin-bottom: 14px; }
+  .pd {
+    width: 28px; height: 28px; border-radius: 7px; border: 0.5px solid var(--border2);
+    background: var(--surface2); font-size: 10px; font-weight: 600; color: var(--text2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s;
+    font-family: 'DM Mono', monospace;
+  }
+  .pd.cur { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pd.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+  .pd.skip { background: rgba(255,255,255,0.03); border-color: var(--border); }
+  .leg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .leg-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text2); }
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  .quiz-footer {
+    border-top: 0.5px solid var(--border); padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    background: var(--surface);
+  }
+  .q-nav { display: flex; gap: 8px; }
+  .qnav-btn {
+    padding: 8px 18px; border-radius: 8px; border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .qnav-btn:hover:not(:disabled) { background: var(--surface2); border-color: var(--accent); }
+  .qnav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .submit-btn {
+    padding: 8px 22px; border-radius: 8px; border: none;
+    background: #ff4444; color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .submit-btn:hover { background: #ff2222; }
+  .ai-badge {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2);
+    padding: 5px 10px; border-radius: 6px; background: var(--surface2); border: 0.5px solid var(--border);
+  }
+  .ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+
+  /* ─── SCORE PAGE ─── */
+  #score {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2rem; gap: 0;
+  }
+  .score-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 20px; padding: 2.5rem; max-width: 600px; width: 100%;
+    animation: fadeUp 0.5s ease both;
+  }
+  .score-top { display: flex; align-items: center; gap: 20px; margin-bottom: 1.75rem; }
+  .score-circle {
+    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    border: 2px solid var(--accent);
+  }
+  .score-pct { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent2); }
+  .score-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .score-grade { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-box { background: var(--surface2); border-radius: 10px; padding: 12px; text-align: center; }
+  .stat-n { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .stat-l { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .section-bars { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.75rem; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-name { font-size: 12px; color: var(--text2); width: 80px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--teal)); transition: width 1s ease; }
+  .bar-score { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); width: 36px; text-align: right; }
+  .score-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .score-btn {
+    flex: 1; min-width: 120px; padding: 11px 20px; border-radius: 10px; border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; text-align: center;
+  }
+  .score-btn:hover { background: var(--surface2); border-color: var(--accent); }
+  .score-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .score-btn.primary:hover { background: var(--accent2); }
+
+  /* Review */
+  #review { padding: 2rem; max-width: 720px; margin: 0 auto; }
+  .rev-header { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 1.5rem; }
+  .rev-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    animation: fadeIn 0.3s ease;
+  }
+  .rev-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .rev-status { margin-left: auto; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  .rev-correct { background: var(--green-bg); color: var(--green); border: 0.5px solid var(--green-border); }
+  .rev-wrong { background: var(--red-bg); color: var(--red); border: 0.5px solid var(--red-border); }
+  .rev-skip { background: var(--amber-bg); color: var(--amber); border: 0.5px solid var(--amber-border); }
+  .rev-q { font-size: 13px; color: var(--text); margin-bottom: 10px; line-height: 1.55; }
+  .rev-opts { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .rev-opt { padding: 7px 12px; border-radius: 8px; font-size: 12px; border: 0.5px solid var(--border); color: var(--text2); }
+  .rev-opt.correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+  .rev-opt.wrong { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 1.25rem;
+    background: var(--surface); border: 0.5px solid var(--border2); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; color: var(--text); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .back-btn:hover { border-color: var(--accent); }
+
+  /* Error toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 0.5px solid var(--red-border); border-radius: 10px;
+    padding: 12px 20px; font-size: 13px; color: var(--red); z-index: 9999;
+    animation: fadeUp 0.3s ease; max-width: 400px; text-align: center;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LANDING ══════════ -->
+<section id="landing">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="logo-badge"><span class="logo-dot"></span> AI-Powered · TCS NQT Prep</div>
+  <h1 class="hero">Crack TCS NQT with<br><span>AI-Generated</span> Questions</h1>
+  <p class="hero-sub">Fresh questions every session — powered by Claude AI. Practice all 4 sections, get instant explanations, track your score.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="showConfig()">Start Practising →</button>
+    <button class="btn-secondary" onclick="showConfig()">Take Mock Test</button>
+  </div>
+  <div class="feature-cards">
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">AI-Generated</div>
+      <div class="feat-desc">Claude generates unique questions every session — no repetition, always fresh.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">All 4 Sections</div>
+      <div class="feat-desc">Numerical, Verbal, Reasoning, and Programming Logic — exactly like TCS NQT.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Instant Feedback</div>
+      <div class="feat-desc">Explanations for every answer. Track your weak areas with section-wise scores.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⏱️</div>
+      <div class="feat-title">Timed Practice</div>
+      <div class="feat-desc">Simulate real exam pressure with countdown timer and question palette.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CONFIG ══════════ -->
+<section id="config" class="hidden">
+  <div class="config-card">
+    <div class="config-title">Configure your session</div>
+    <div class="config-sub">Choose sections and difficulty. Questions are generated fresh by AI.</div>
+
+    <div class="field-label">Sections</div>
+    <div class="chip-group" id="sec-chips">
+      <button class="chip active" data-sec="Numerical Ability" onclick="toggleChip(this)">Numerical</button>
+      <button class="chip active" data-sec="Verbal Ability" onclick="toggleChip(this)">Verbal</button>
+      <button class="chip active" data-sec="Reasoning Ability" onclick="toggleChip(this)">Reasoning</button>
+      <button class="chip active" data-sec="Programming Logic" onclick="toggleChip(this)">Coding</button>
+    </div>
+
+    <div class="field-label">Difficulty</div>
+    <div class="chip-group" id="diff-chips">
+      <button class="chip" data-diff="Beginner" onclick="selectDiff(this)">Beginner</button>
+      <button class="chip active" data-diff="Intermediate" onclick="selectDiff(this)">Intermediate</button>
+      <button class="chip" data-diff="Advanced" onclick="selectDiff(this)">Advanced</button>
+    </div>
+
+    <div class="field-label">Number of questions</div>
+    <div class="num-row" id="num-row">
+      <button class="num-btn active" data-n="10" onclick="selectNum(this)">10</button>
+      <button class="num-btn" data-n="15" onclick="selectNum(this)">15</button>
+      <button class="num-btn" data-n="20" onclick="selectNum(this)">20</button>
+      <button class="num-btn" data-n="30" onclick="selectNum(this)">30</button>
+    </div>
+
+    <div class="field-label">Anthropic API Key</div>
+    <div class="api-row">
+      <input class="api-input" id="api-key" type="password" placeholder="sk-ant-api03-..." />
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:1.5rem;line-height:1.5;">
+      Your key is used only in this browser session and never stored. Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent2)">console.anthropic.com</a>
+    </div>
+
+    <button class="start-btn" id="start-btn" onclick="startQuiz()">Generate Questions with AI →</button>
+    <button class="btn-secondary" style="width:100%;margin-top:10px" onclick="showLanding()">← Back</button>
+  </div>
+</section>
+
+<!-- ══════════ LOADING ══════════ -->
+<section id="loading" class="hidden">
+  <div class="loader-ring"></div>
+  <div class="load-title">Generating your questions</div>
+  <div class="load-sub" id="load-msg">Claude is crafting TCS NQT-style questions...</div>
+  <div class="load-dots"><span></span><span></span><span></span></div>
+</section>
+
+<!-- ══════════ QUIZ ══════════ -->
+<section id="quiz" class="hidden">
+  <div class="quiz-topbar">
+    <div class="quiz-meta">
+      <span class="quiz-brand">NQT Prep</span>
+      <span class="sec-pill" id="cur-sec-badge">Numerical</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="ai-badge"><span class="ai-dot"></span> AI-generated</div>
+      <span style="font-size:12px;color:var(--text2)" id="q-count-label">0/0 done</span>
+      <div class="timer" id="timer">--:--</div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+  <div class="quiz-body">
+    <div class="q-col" id="q-col">
+      <!-- Question rendered here -->
+    </div>
+    <div class="palette-col">
+      <div class="pal-label">Questions</div>
+      <div class="pal-grid" id="pal-grid"></div>
+      <div class="leg">
+        <div class="leg-row"><div class="leg-dot" style="background:var(--accent)"></div> Current</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--green);opacity:.6"></div> Answered</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--border2)"></div> Not visited</div>
+      </div>
+      <button class="qnav-btn" style="width:100%;margin-bottom:6px;font-size:11px" onclick="clearAnswer()">Clear answer</button>
+    </div>
+  </div>
+
+  <div class="quiz-footer">
+    <div class="q-nav">
+      <button class="qnav-btn" id="prev-btn" onclick="goQ(curQ-1)">← Prev</button>
+      <button class="qnav-btn" id="next-btn" onclick="goQ(curQ+1)">Next →</button>
+    </div>
+    <button class="submit-btn" onclick="confirmSubmit()">Submit Test</button>
+  </div>
+</section>
+
+<!-- ══════════ SCORE ══════════ -->
+<section id="score" class="hidden">
+  <div class="score-card">
+    <div class="score-top">
+      <div class="score-circle" id="score-circle">
+        <div class="score-pct" id="score-pct">0%</div>
+      </div>
+      <div>
+        <div class="score-title" id="score-title">Great effort!</div>
+        <div class="score-grade" id="score-grade"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-n" style="color:var(--green)" id="s-correct">0</div><div class="stat-l">Correct</div></div>
+      <div class="stat-box"><div class="stat-n" style="color:var(--red)" id="s-wrong">0</div><div class="stat-l">Wrong</div></div>
+      <div class="stat-box"><div class="stat-n" style="color:var(--amber)" id="s-skip">0</div><div class="stat-l">Skipped</div></div>
+      <div class="stat-box"><div class="stat-n" id="s-time">0:00</div><div class="stat-l">Time used</div></div>
+    </div>
+    <div class="section-bars" id="section-bars"></div>
+    <div class="score-actions">
+      <button class="score-btn" onclick="showReview()">Review Answers</button>
+      <button class="score-btn" onclick="showConfig()">New Session</button>
+      <button class="score-btn primary" onclick="regenerateMore()">More Questions ↗</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ REVIEW ══════════ -->
+<section id="review" class="hidden">
+  <button class="back-btn" onclick="showScore()">← Back to score</button>
+  <div class="rev-header">Answer Review</div>
+  <div id="rev-body"></div>
+</section>
+
+<script>
+// ─── State ───
+let questions = [];
+let userAnswers = [];
+let curQ = 0;
+let timerInterval = null;
+let timeLeft = 0;
+let totalTime = 0;
+let answered = false;
+let config = { sections: [], difficulty: 'Intermediate', numQ: 10, apiKey: '' };
+
+// ─── Nav helpers ───
+function showPage(id) {
+  ['landing','config','loading','quiz','score','review'].forEach(p => {
+    document.getElementById(p).classList.toggle('hidden', p !== id);
+  });
+}
+function showLanding() { showPage('landing'); }
+function showConfig() { showPage('config'); }
+function showScore() { renderScore(); showPage('score'); }
+function showReview() { renderReview(); showPage('review'); }
+
+function toggleChip(btn) {
+  btn.classList.toggle('active');
+}
+function selectDiff(btn) {
+  document.querySelectorAll('#diff-chips .chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectNum(btn) {
+  document.querySelectorAll('#num-row .num-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── Section badge color ───
+function secBadgeClass(sec) {
+  if (sec.includes('Numerical')) return 'sec-num';
+  if (sec.includes('Verbal')) return 'sec-ver';
+  if (sec.includes('Reasoning')) return 'sec-rea';
+  return 'sec-cod';
+}
+function secShort(sec) {
+  if (sec.includes('Numerical')) return 'Numerical';
+  if (sec.includes('Verbal')) return 'Verbal';
+  if (sec.includes('Reasoning')) return 'Reasoning';
+  return 'Coding';
+}
+
+// ─── API call ───
+async function callClaude(apiKey, prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content.map(c => c.text || '').join('');
+}
+
+function buildPrompt(sections, difficulty, numQ) {
+  const perSec = Math.ceil(numQ / sections.length);
+  return `You are an expert TCS NQT exam question creator. Generate exactly ${numQ} multiple-choice questions for TCS NQT exam preparation.
+
+Sections to cover (distribute evenly): ${sections.join(', ')}
+Difficulty: ${difficulty}
+Total questions: ${numQ} (approx ${perSec} per section)
+
+Rules:
+- Each question must have exactly 4 options (A, B, C, D)
+- One correct answer per question
+- Include a clear, concise explanation
+- Questions must be fresh and unique
+- For Programming Logic: include Python/C code snippets with output questions, time complexity, data structures
+- For Numerical: word problems, percentages, ratio, time-work, SI/CI, probability
+- For Verbal: grammar, vocabulary, reading comprehension, sentence correction
+- For Reasoning: series, coding-decoding, blood relations, syllogisms, seating arrangements
+
+IMPORTANT: Respond ONLY with a valid JSON array. No markdown, no explanation, just the JSON.
+
+Format (array of exactly ${numQ} objects):
+[
+  {
+    "section": "Numerical Ability",
+    "question": "Question text here",
+    "code": null,
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correct": 0,
+    "explanation": "Clear explanation here"
+  }
+]
+
+For coding questions with code snippets, put the code in the "code" field as a string. For non-coding questions set "code" to null.
+"correct" is the 0-based index of the correct option.`;
+}
+
+async function startQuiz() {
+  const secs = [...document.querySelectorAll('#sec-chips .chip.active')].map(b => b.dataset.sec);
+  const diff = document.querySelector('#diff-chips .chip.active')?.dataset.diff || 'Intermediate';
+  const numQ = parseInt(document.querySelector('#num-row .num-btn.active')?.dataset.n || '10');
+  const apiKey = document.getElementById('api-key').value.trim();
+
+  if (!secs.length) { showToast('Select at least one section.'); return; }
+  if (!apiKey) { showToast('Please enter your Anthropic API key.'); return; }
+
+  config = { sections: secs, difficulty: diff, numQ, apiKey };
+  showPage('loading');
+
+  const msgs = [
+    'Claude is crafting TCS NQT-style questions...',
+    'Generating explanations and answer keys...',
+    'Validating question quality...',
+    'Almost ready — preparing your quiz...',
+  ];
+  let mi = 0;
+  const msgEl = document.getElementById('load-msg');
+  const msgInt = setInterval(() => { msgEl.textContent = msgs[Math.min(++mi, msgs.length-1)]; }, 2500);
+
+  try {
+    const prompt = buildPrompt(secs, diff, numQ);
+    const raw = await callClaude(apiKey, prompt);
+    clearInterval(msgInt);
+
+    let parsed;
+    try {
+      const jsonStr = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+      parsed = JSON.parse(jsonStr);
+    } catch(e) {
+      // Try to extract JSON array from response
+      const match = raw.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error('Could not parse AI response as JSON. Try again.');
+      parsed = JSON.parse(match[0]);
+    }
+
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('AI returned no questions. Please try again.');
+
+    questions = parsed.slice(0, numQ);
+    userAnswers = new Array(questions.length).fill(-1);
+    curQ = 0;
+
+    // Set timer: 1.5 min per question
+    totalTime = questions.length * 90;
+    timeLeft = totalTime;
+    initQuiz();
+    showPage('quiz');
+  } catch(err) {
+    clearInterval(msgInt);
+    showPage('config');
+    showToast('Error: ' + (err.message || 'Failed to generate questions. Check your API key.'));
+  }
+}
+
+// ─── Quiz logic ───
+function initQuiz() {
+  renderPalette();
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (timeLeft <= 0) { clearInterval(timerInterval); doSubmit(true); return; }
+    timeLeft--;
+    const el = document.getElementById('timer');
+    if (!el) return;
+    const m = Math.floor(timeLeft/60), s = timeLeft%60;
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (timeLeft <= 60) el.classList.add('warn'); else el.classList.remove('warn');
+  }, 1000);
+}
+
+function renderPalette() {
+  const grid = document.getElementById('pal-grid');
+  if (!grid) return;
+  grid.innerHTML = questions.map((q,i) => {
+    let cls = 'pd';
+    if (i === curQ) cls += ' cur';
+    else if (userAnswers[i] !== -1) cls += ' done';
+    else cls += ' skip';
+    return `<div class="${cls}" onclick="goQ(${i})">${i+1}</div>`;
+  }).join('');
+}
+
+function renderQuestion() {
+  const q = questions[curQ];
+  if (!q) return;
+
+  answered = false;
+
+  // Update header
+  const badge = document.getElementById('cur-sec-badge');
+  badge.textContent = secShort(q.section);
+  badge.className = 'sec-pill ' + secBadgeClass(q.section);
+
+  document.getElementById('q-count-label').textContent = `${userAnswers.filter(x=>x!==-1).length}/${questions.length} done`;
+  document.getElementById('progress-fill').style.width = ((curQ+1)/questions.length*100) + '%';
+  document.getElementById('prev-btn').disabled = curQ === 0;
+  document.getElementById('next-btn').disabled = curQ === questions.length-1;
+
+  const codeBlock = q.code ? `<div class="q-code">${escHtml(q.code)}</div>` : '';
+  const optsHtml = q.options.map((o,i) => {
+    let cls = 'opt-btn';
+    if (userAnswers[curQ] === i) cls += ' selected';
+    return `<button class="${cls}" onclick="pickAnswer(${i})">
+      <span class="opt-key">${String.fromCharCode(65+i)}</span>
+      <span>${escHtml(o)}</span>
+    </button>`;
+  }).join('');
+
+  document.getElementById('q-col').innerHTML = `
+    <div class="q-number">QUESTION ${curQ+1} OF ${questions.length} &nbsp;·&nbsp; ${secShort(q.section).toUpperCase()}</div>
+    <div class="q-text">${escHtml(q.question)}</div>
+    ${codeBlock}
+    <div class="opts" id="opts">${optsHtml}</div>
+    <div id="exp-container"></div>`;
+
+  renderPalette();
+}
+
+function pickAnswer(i) {
+  if (answered) return;
+  userAnswers[curQ] = i;
+  answered = true;
+
+  const q = questions[curQ];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[i].classList.remove('selected');
+  btns[i].classList.add(i === q.correct ? 'correct' : 'wrong');
+  if (i !== q.correct) btns[q.correct].classList.add('correct');
+
+  document.getElementById('exp-container').innerHTML = `
+    <div class="exp-box">
+      <div class="exp-label">EXPLANATION</div>
+      ${escHtml(q.explanation)}
+    </div>`;
+
+  document.getElementById('q-count-label').textContent = `${userAnswers.filter(x=>x!==-1).length}/${questions.length} done`;
+  renderPalette();
+}
+
+function clearAnswer() {
+  userAnswers[curQ] = -1;
+  answered = false;
+  renderQuestion();
+}
+
+function goQ(i) {
+  if (i < 0 || i >= questions.length) return;
+  curQ = i;
+  answered = userAnswers[curQ] !== -1;
+  renderQuestion();
+  if (answered) showAnswerState();
+}
+
+function showAnswerState() {
+  const q = questions[curQ];
+  const ua = userAnswers[curQ];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[ua].classList.remove('selected');
+  btns[ua].classList.add(ua === q.correct ? 'correct' : 'wrong');
+  if (ua !== q.correct) btns[q.correct].classList.add('correct');
+  document.getElementById('exp-container').innerHTML = `
+    <div class="exp-box">
+      <div class="exp-label">EXPLANATION</div>
+      ${escHtml(q.explanation)}
+    </div>`;
+}
+
+function confirmSubmit() {
+  const left = userAnswers.filter(x=>x===-1).length;
+  if (left > 0) { if (!confirm(`${left} question(s) unanswered. Submit anyway?`)) return; }
+  doSubmit(false);
+}
+
+function doSubmit(auto) {
+  clearInterval(timerInterval);
+  showScore();
+}
+
+// ─── Score ───
+function renderScore() {
+  const total = questions.length;
+  const correct = userAnswers.filter((a,i) => a === questions[i].correct).length;
+  const wrong = userAnswers.filter((a,i) => a !== -1 && a !== questions[i].correct).length;
+  const skip = userAnswers.filter(a => a === -1).length;
+  const pct = Math.round(correct/total*100);
+  const used = totalTime - timeLeft;
+  const grade = pct>=85?'Outstanding — NQT Ready!':pct>=70?'Good performance!':pct>=55?'Average — keep practising':'Needs more revision';
+
+  document.getElementById('score-pct').textContent = pct+'%';
+  document.getElementById('score-title').textContent = grade.split('—')[0].trim();
+  document.getElementById('score-grade').textContent = grade;
+  document.getElementById('s-correct').textContent = correct;
+  document.getElementById('s-wrong').textContent = wrong;
+  document.getElementById('s-skip').textContent = skip;
+  const um = Math.floor(used/60), us = used%60;
+  document.getElementById('s-time').textContent = `${um}:${String(us).padStart(2,'0')}`;
+
+  // Section bars
+  const secs = [...new Set(questions.map(q=>q.section))];
+  const barsHtml = secs.map(sec => {
+    const qs = questions.map((q,i)=>({q,i})).filter(({q})=>q.section===sec);
+    const c = qs.filter(({q,i})=>userAnswers[i]===q.correct).length;
+    const t = qs.length;
+    const p = Math.round(c/t*100);
+    return `<div class="bar-row">
+      <div class="bar-name">${secShort(sec)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%"></div></div>
+      <div class="bar-score">${c}/${t}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('section-bars').innerHTML = barsHtml;
+}
+
+function renderReview() {
+  const html = questions.map((q,i) => {
+    const ua = userAnswers[i];
+    const ok = ua === q.correct;
+    const statusCls = ua===-1?'rev-skip':ok?'rev-correct':'rev-wrong';
+    const statusTxt = ua===-1?'Skipped':ok?'Correct':'Wrong';
+    const code = q.code ? `<div class="q-code" style="margin-bottom:10px">${escHtml(q.code)}</div>` : '';
+    const optsHtml = q.options.map((o,j)=>{
+      let cls='rev-opt';
+      if(j===q.correct)cls+=' correct';
+      else if(j===ua&&ua!==q.correct)cls+=' wrong';
+      return `<div class="${cls}">${String.fromCharCode(65+j)}. ${escHtml(o)}</div>`;
+    }).join('');
+    return `<div class="rev-card">
+      <div class="rev-meta">
+        <span class="sec-pill ${secBadgeClass(q.section)}">${secShort(q.section)}</span>
+        <span style="font-size:11px;color:var(--text2)">Q${i+1}</span>
+        <span class="rev-status ${statusCls}">${statusTxt}</span>
+      </div>
+      <div class="rev-q">${escHtml(q.question)}</div>
+      ${code}
+      <div class="rev-opts">${optsHtml}</div>
+      <div class="exp-box"><div class="exp-label">EXPLANATION</div>${escHtml(q.explanation)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('rev-body').innerHTML = html;
+}
+
+async function regenerateMore() {
+  showConfig();
+}
+
+// ─── Utilities ───
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>
