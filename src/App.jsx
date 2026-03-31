@@ -36,9 +36,9 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
 
             {/* Protected app routes */}
-            <Route path="/" element={<Navigate to="/skill-forge" replace />} />
+            <Route path="/" element={<Navigate to="/skill-pilot" replace />} />
 
-            <Route path="/skill-forge" element={
+            <Route path="/skill-pilot" element={
               <ProtectedRoute>
                 <AppLayout>
                   <TCSGenerator />

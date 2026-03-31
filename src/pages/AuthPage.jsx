@@ -42,7 +42,7 @@ export default function AuthPage() {
   const otpRefs = useRef([]);
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/skill-forge', { replace: true });
+    if (isAuthenticated) navigate('/skill-pilot', { replace: true });
 
     // Check for OAuth callbacks
     const params = new URLSearchParams(window.location.search);
@@ -211,7 +211,7 @@ export default function AuthPage() {
       }
       login(data.token, data.user, true);
       setDone(true);
-      setTimeout(() => navigate('/skill-forge', { replace: true }), 1800);
+      setTimeout(() => navigate('/skill-pilot', { replace: true }), 1800);
     } catch { setError('Network error.'); }
     finally { setLoading(false); }
   }
@@ -273,7 +273,7 @@ export default function AuthPage() {
         const data = await res.json();
         if (!data.success) { setError(data.message || 'Google sign-in failed.'); return; }
         login(data.token, data.user, true);
-        navigate('/skill-forge', { replace: true });
+        navigate('/skill-pilot', { replace: true });
       } catch { setError('Google sign-in failed.'); }
     });
   }
@@ -332,7 +332,7 @@ export default function AuthPage() {
           {/* Logo */}
           <div style={s.logo}>
             <div style={s.logoMark}>⚡</div>
-            <span style={s.logoText}>SkillForge</span>
+            <span style={s.logoText}>SkillPilot</span>
             <span style={s.logoBadge}>AI</span>
           </div>
 

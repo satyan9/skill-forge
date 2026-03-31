@@ -115,18 +115,18 @@ export default function Sidebar() {
     <>
       <style>{sidebarStyles}</style>
       <div className="sidebar" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="sidebar-header" onClick={() => navigate('/skill-forge')} title="Go to Home">
+        <div className="sidebar-header" onClick={() => navigate('/skill-pilot')} title="Go to Home">
           <div className="sidebar-icon">
             <Brain size={18} />
           </div>
-          SkillForge AI
+          SkillPilot AI
         </div>
 
         <div className="sidebar-nav">
           <div className="nav-label">Assessment</div>
-          <NavLink to="/skill-forge" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/skill-pilot" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
             <Code2 size={18} />
-            SkillForge AI
+            SkillPilot AI
           </NavLink>
           <NavLink to="/history" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>

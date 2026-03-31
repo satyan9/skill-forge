@@ -211,7 +211,7 @@ export default function TCSGenerator() {
             <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
               <Brain size={32} className="text-indigo-400" />
             </div>
-            <h1 className="page-title" style={{margin: 0}}>SkillForge AI</h1>
+            <h1 className="page-title" style={{margin: 0}}>SkillPilot AI</h1>
           </div>
           <p className="page-subtitle text-center">Adaptive Technical Assessments & Coding Challenges</p>
         </div>
@@ -371,7 +371,7 @@ export default function TCSGenerator() {
       <div className="loading-state">
         <Loader2 size={48} className="spinner" />
         <h2 className="loading-title">Forging your assessment...</h2>
-        <p className="loading-sub">SkillForge AI is generating unique technical challenges matching your criteria...</p>
+        <p className="loading-sub">SkillPilot AI is generating unique technical challenges matching your criteria...</p>
       </div>
     );
   }
