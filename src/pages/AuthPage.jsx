@@ -43,7 +43,32 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (isAuthenticated) navigate('/skill-forge', { replace: true });
-  }, [isAuthenticated]);
+
+    // Check for OAuth callbacks
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const provider = params.get('state'); // Passed via state
+    if (code && (provider === 'github' || provider === 'facebook')) {
+      handleOAuthCallback(code, provider);
+    }
+  }, [isAuthenticated, navigate]);
+
+  async function handleOAuthCallback(code, provider) {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/${provider}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirectUri: window.location.origin + window.location.pathname }),
+      });
+      const data = await res.json();
+      if (!data.success) { setError(data.message || `${provider} sign-in failed.`); return; }
+      login(data.token, data.user, true);
+    } catch { setError(`${provider} sign-in failed.`); }
+    finally {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setLoading(false);
+    }
+  }
 
   // Star field canvas
   useEffect(() => {
@@ -236,6 +261,9 @@ export default function AuthPage() {
 
   /* ── GOOGLE ── */
   async function handleGoogle() {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || clientId.includes('your_')) return showToast('Google login is not yet configured on this server.');
+
     initGoogleSignIn(async (response) => {
       try {
         const res = await fetch(`${API_BASE}/auth/google`, {
@@ -248,6 +276,20 @@ export default function AuthPage() {
         navigate('/skill-forge', { replace: true });
       } catch { setError('Google sign-in failed.'); }
     });
+  }
+
+  /* ── GITHUB ── */
+  function handleGithub() {
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    if (!clientId || clientId.includes('your_')) return showToast('GitHub login is not yet configured on this server.');
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email&redirect_uri=${window.location.origin}/auth&state=github`;
+  }
+
+  /* ── FACEBOOK ── */
+  function handleFacebook() {
+    const clientId = import.meta.env.VITE_FACEBOOK_CLIENT_ID;
+    if (!clientId || clientId.includes('your_')) return showToast('Facebook login is not yet configured on this server.');
+    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&scope=email,public_profile&redirect_uri=${window.location.origin}/auth&state=facebook`;
   }
 
   function showToast(msg) { setError(msg); setTimeout(() => setError(''), 4000); }
@@ -332,7 +374,7 @@ export default function AuthPage() {
                 <Btn type="submit" loading={loading} text="Sign In" />
               </form>
 
-              <SocialSection onGoogle={handleGoogle} onFacebook={() => showToast('Facebook coming soon!')} onGithub={() => showToast('GitHub coming soon!')} />
+              <SocialSection onGoogle={handleGoogle} onFacebook={handleFacebook} onGithub={handleGithub} />
               <div style={s.switchPrompt}>Don't have an account? <button style={s.switchBtn} onClick={flip}>Create one →</button></div>
 
               <div style={s.statRow}>
@@ -365,8 +407,8 @@ export default function AuthPage() {
                   <Field label="Full Name" icon="user"><input name="name" type="text" value={form.name} onChange={handleChange} placeholder="Jane Doe" style={s.input} autoComplete="name" /></Field>
                   <Field label="Email Address" icon="email"><input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" style={s.input} autoComplete="email" /></Field>
                   <Btn loading={loading} text="Send Verification Code →" onClick={sendOtp} />
-                  <SocialSection onGoogle={handleGoogle} onFacebook={() => showToast('Facebook coming soon!')} onGithub={() => showToast('GitHub coming soon!')} />
-                  <div style={s.switchPrompt}>Already have an account? <button style={s.switchBtn} onClick={flip}>← Sign in</button></div>
+                  <SocialSection onGoogle={handleGoogle} onFacebook={handleFacebook} onGithub={handleGithub} />
+                  <div style={s.switchPrompt}>Already have an account? <button style={s.switchBtn} onClick={() => flip('login')}>← Sign in</button></div>
                 </>
               )}
 

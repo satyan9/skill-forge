@@ -1,57 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useSubmissions } from '../utils/useSubmissions';
 import { useAuth } from '../context/AuthContext';
+import { LayoutDashboard, CheckCircle2, XCircle, Clock, Trophy, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HistoryPage() {
-  const { user, logout } = useAuth();
-  const { getSubmissions, getSubmission, deleteSubmission, getStatsSummary } = useSubmissions();
+  const { user } = useAuth();
+  const { getSubmissions, getStatsSummary } = useSubmissions();
 
   const [submissions, setSubmissions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [filterTopic, setFilterTopic] = useState('');
-  const [topicBreakdown, setTopicBreakdown] = useState([]);
 
-  useEffect(() => {
-    loadData();
-    loadStats();
-  }, [page, filterTopic]);
+  useEffect(() => { loadData(); }, [page]);
 
   async function loadData() {
     setLoading(true);
-    const data = await getSubmissions({ page, limit: 10, topic: filterTopic });
-    if (data.success) {
-      setSubmissions(data.submissions);
-      setPagination(data.pagination);
-      setStats(data.stats);
+    const [subData, statData] = await Promise.all([
+      getSubmissions({ page, limit: 10 }),
+      getStatsSummary(),
+    ]);
+    if (subData.success) {
+      setSubmissions(subData.submissions);
+      setPagination(subData.pagination);
     }
+    if (statData.success) setStats(statData.stats);
     setLoading(false);
-  }
-
-  async function loadStats() {
-    const data = await getStatsSummary();
-    if (data.success) {
-      setTopicBreakdown(data.topicBreakdown || []);
-    }
-  }
-
-  async function openDetail(id) {
-    setDetailLoading(true);
-    const data = await getSubmission(id);
-    if (data.success) setSelected(data.submission);
-    setDetailLoading(false);
-  }
-
-  async function handleDelete(id) {
-    if (!confirm('Delete this submission?')) return;
-    await deleteSubmission(id);
-    setSelected(null);
-    loadData();
-    loadStats();
   }
 
   function formatDate(ts) {
@@ -62,265 +37,266 @@ export default function HistoryPage() {
   }
 
   function scoreColor(score) {
-    if (score >= 80) return '#00d4aa';
-    if (score >= 50) return '#f0d060';
+    if (score >= 70) return '#00d4aa';
+    if (score >= 40) return '#f0d060';
     return '#ff5e7a';
   }
 
+  function statusIcon(status) {
+    if (status === 'completed') return <CheckCircle2 size={16} color="#00d4aa" />;
+    if (status === 'failed') return <XCircle size={16} color="#ff5e7a" />;
+    return <Clock size={16} color="#f0d060" />;
+  }
+
+  const topStats = [
+    { icon: <LayoutDashboard size={20} />, label: 'Total Tests', value: stats?.totalSubmissions ?? 0, color: '#9b94ff' },
+    { icon: <CheckCircle2 size={20} />, label: 'Tests Passed', value: stats?.totalPassed ?? 0, color: '#00d4aa' },
+    { icon: <Trophy size={20} />, label: 'Avg Score', value: `${stats?.averageScore ?? 0}%`, color: '#f59e0b' },
+    { icon: <BookOpen size={20} />, label: 'Modules', value: stats?.topicsAttempted?.length ?? 0, color: '#a855f7' },
+  ];
+
   return (
     <div style={s.root}>
-      {/* header */}
-      <div style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logoMark}>⚡</div>
-          <div>
-            <div style={s.headerTitle}>Submission History</div>
-            <div style={s.headerSub}>Welcome back, {user?.name} · {user?.stats?.totalSubmissions || 0} total submissions</div>
+      {/* Stats Row */}
+      <div style={s.statsRow}>
+        {topStats.map(({ icon, label, value, color }) => (
+          <div key={label} style={s.statCard}>
+            <div style={{ ...s.statIcon, color }}>{icon}</div>
+            <div>
+              <div style={{ ...s.statValue, color }}>{value}</div>
+              <div style={s.statLabel}>{label}</div>
+            </div>
           </div>
-        </div>
-        <button onClick={logout} style={s.logoutBtn}>Sign Out</button>
+        ))}
       </div>
 
-      {/* Stats chips */}
-      {stats && (
-        <div style={s.statsRow}>
-          {[
-            ['📊', 'Total', stats.totalSubmissions],
-            ['✅', 'Passed', stats.totalPassed],
-            ['🏆', 'Avg Score', `${stats.averageScore}%`],
-            ['📚', 'Topics', stats.topicsAttempted?.length || 0],
-          ].map(([icon, label, val]) => (
-            <div key={label} style={s.statChip}>
-              <span style={s.chipIcon}>{icon}</span>
-              <span style={s.chipVal}>{val}</span>
-              <span style={s.chipLabel}>{label}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Test List */}
+      <div style={s.section}>
+        <h2 style={s.sectionTitle}>Test History</h2>
 
-      <div style={s.body}>
-        {/* Left: List */}
-        <div style={s.listPanel}>
-          <div style={s.filterBar}>
-            <input
-              value={filterTopic}
-              onChange={e => { setFilterTopic(e.target.value); setPage(1); }}
-              placeholder="Filter by topic…"
-              style={s.filterInput}
-            />
+        {loading ? (
+          <div style={s.empty}>Loading...</div>
+        ) : submissions.length === 0 ? (
+          <div style={s.empty}>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>📋</div>
+            <div style={{ fontWeight: 600, fontSize: 17 }}>No tests taken yet</div>
+            <div style={{ opacity: 0.5, fontSize: 13, marginTop: 6 }}>Complete an assessment to see your history here.</div>
           </div>
-
-          {loading ? (
-            <div style={s.loading}>Loading submissions…</div>
-          ) : submissions.length === 0 ? (
-            <div style={s.empty}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-              <div>No submissions yet.</div>
-              <div style={{ opacity: 0.5, fontSize: 13, marginTop: 4 }}>Complete an assessment to see history here.</div>
-            </div>
-          ) : (
-            submissions.map(sub => (
-              <div
-                key={sub._id}
-                onClick={() => openDetail(sub._id)}
-                style={{ ...s.subCard, ...(selected?._id === sub._id ? s.subCardActive : {}) }}
-              >
-                <div style={s.subTop}>
-                  <span style={s.subTopic}>{sub.topic}</span>
-                  <span style={{ ...s.subScore, color: scoreColor(sub.score || 0) }}>{sub.score || 0}%</span>
-                </div>
-                <div style={s.subMeta}>
-                  <span style={s.subBadge}>{sub.difficulty}</span>
-                  <span style={s.subBadge}>{sub.language}</span>
-                  <span style={s.subBadge2}>{sub.status}</span>
-                </div>
-                <div style={s.subDate}>{formatDate(sub.timestamp)}</div>
-              </div>
-            ))
-          )}
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div style={s.pagination}>
-              <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page === 1} style={s.pageBtn}>← Prev</button>
-              <span style={{ color: 'rgba(238,240,248,0.4)', fontSize: 13 }}>{page} / {pagination.totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(pagination.totalPages, p+1))} disabled={page === pagination.totalPages} style={s.pageBtn}>Next →</button>
-            </div>
-          )}
-        </div>
-
-        {/* Right: Detail */}
-        <div style={s.detailPanel}>
-          {detailLoading ? (
-            <div style={s.loading}>Loading submission details…</div>
-          ) : !selected ? (
-            <div style={s.detailEmpty}>
-              <div style={{ fontSize: 64, marginBottom: 16 }}>🔍</div>
-              <div style={{ fontWeight: 600, fontSize: 18 }}>Select a submission</div>
-              <div style={{ opacity: 0.4, fontSize: 13, marginTop: 6 }}>Click any item on the left to view details, code, and AI review</div>
-            </div>
-          ) : (
-            <div style={s.detailContent}>
-              <div style={s.detailHeader}>
-                <div>
-                  <div style={s.detailTopic}>{selected.topic}</div>
-                  <div style={s.detailDate}>{formatDate(selected.timestamp)}</div>
-                </div>
-                <div style={s.detailActions}>
-                  <span style={{ ...s.detailScore, color: scoreColor(selected.score) }}>{selected.score}%</span>
-                  <button onClick={() => handleDelete(selected._id)} style={s.deleteBtn}>🗑</button>
-                </div>
-              </div>
-
-              {/* Badges */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-                {[selected.difficulty, selected.language, selected.questionType, selected.status].map(b => (
-                  <span key={b} style={s.detailBadge}>{b}</span>
-                ))}
-              </div>
-
-              {/* Question */}
-              {selected.question?.title && (
-                <section style={s.section}>
-                  <div style={s.sectionLabel}>📋 QUESTION</div>
-                  <div style={s.questionTitle}>{selected.question.title}</div>
-                  {selected.question.description && (
-                    <div style={s.questionDesc}>{selected.question.description}</div>
-                  )}
-                </section>
-              )}
-
-              {/* Execution Result */}
-              {selected.executionResult && (
-                <section style={s.section}>
-                  <div style={s.sectionLabel}>🧪 EXECUTION RESULT</div>
-                  <div style={{ ...s.resultBox, borderColor: selected.executionResult.passed ? '#00d4aa44' : '#ff5e7a44' }}>
-                    <div style={{ color: selected.executionResult.passed ? '#00d4aa' : '#ff5e7a', fontWeight: 600, marginBottom: 8 }}>
-                      {selected.executionResult.passed ? '✅ All tests passed' : '❌ Tests failed'}
+        ) : (
+          <div style={s.list}>
+            {submissions.map(sub => (
+              <div key={sub._id} style={s.card}>
+                {/* Left: Status + Topic */}
+                <div style={s.cardLeft}>
+                  <div style={s.statusIcon}>{statusIcon(sub.status)}</div>
+                  <div>
+                    <div style={s.topic}>{sub.question?.title || sub.topic}</div>
+                    <div style={s.meta}>
+                      <span style={s.badge}>{sub.difficulty}</span>
+                      <span style={s.badge}>{sub.topic}</span>
+                      <span style={s.badge}>{sub.questionType}</span>
                     </div>
-                    {selected.executionResult.testsTotal > 0 && (
-                      <div style={{ fontSize: 13, opacity: 0.7 }}>
-                        {selected.executionResult.testsPassed}/{selected.executionResult.testsTotal} test cases passed
-                      </div>
-                    )}
-                    {selected.executionResult.output && (
-                      <pre style={s.codeBlock}>{selected.executionResult.output}</pre>
-                    )}
-                    {selected.executionResult.error && (
-                      <pre style={{ ...s.codeBlock, color: '#ff5e7a' }}>{selected.executionResult.error}</pre>
-                    )}
                   </div>
-                </section>
-              )}
+                </div>
 
-              {/* User Code */}
-              {selected.userCode && (
-                <section style={s.section}>
-                  <div style={s.sectionLabel}>💻 YOUR CODE</div>
-                  <pre style={s.codeBlock}>{selected.userCode}</pre>
-                </section>
-              )}
+                {/* Center: Date */}
+                <div style={s.dateCell}>
+                  <Clock size={13} style={{ marginRight: 5, opacity: 0.5 }} />
+                  {formatDate(sub.timestamp)}
+                </div>
 
-              {/* AI Review */}
-              {selected.review && (
-                <section style={s.section}>
-                  <div style={s.sectionLabel}>🤖 AI REVIEW</div>
-                  <div style={s.reviewCard}>
-                    {typeof selected.review === 'string' ? (
-                      <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7 }}>{selected.review}</div>
-                    ) : (
-                      <>
-                        {selected.review.summary && (
-                          <div style={{ marginBottom: 14 }}>
-                            <div style={s.reviewSubLabel}>Summary</div>
-                            <div style={{ fontSize: 14, lineHeight: 1.7 }}>{selected.review.summary}</div>
-                          </div>
-                        )}
-                        {selected.review.mistakes && selected.review.mistakes.length > 0 && (
-                          <div style={{ marginBottom: 14 }}>
-                            <div style={s.reviewSubLabel}>⚠ Mistakes to Fix</div>
-                            <ul style={{ paddingLeft: 18, fontSize: 14, lineHeight: 1.8 }}>
-                              {selected.review.mistakes.map((m, i) => <li key={i} style={{ color: '#ff9973' }}>{m}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {selected.review.improvements && selected.review.improvements.length > 0 && (
-                          <div style={{ marginBottom: 14 }}>
-                            <div style={s.reviewSubLabel}>💡 Improvements</div>
-                            <ul style={{ paddingLeft: 18, fontSize: 14, lineHeight: 1.8 }}>
-                              {selected.review.improvements.map((m, i) => <li key={i} style={{ color: '#9b94ff' }}>{m}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {selected.review.verdict && (
-                          <div style={{ marginTop: 10, padding: '10px 14px', background: 'rgba(0,212,170,0.08)', borderRadius: 10, fontSize: 14, color: '#00d4aa', fontWeight: 600 }}>
-                            Verdict: {selected.review.verdict}
-                          </div>
-                        )}
-                        {/* Fallback: show raw JSON if none of the above */}
-                        {!selected.review.summary && !selected.review.mistakes && !selected.review.verdict && (
-                          <pre style={{ ...s.codeBlock, fontSize: 12 }}>{JSON.stringify(selected.review, null, 2)}</pre>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
-        </div>
+                {/* Right: Score */}
+                <div style={{ ...s.scoreCell, color: scoreColor(sub.score || 0) }}>
+                  {sub.score || 0}%
+                </div>
+
+                {/* Far right: passed/failed text */}
+                <div style={{ ...s.resultCell, color: sub.status === 'completed' ? '#00d4aa' : sub.status === 'failed' ? '#ff5e7a' : '#f0d060' }}>
+                  {sub.status === 'completed' ? '✓ Passed' : sub.status === 'failed' ? '✗ Failed' : '~ Partial'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div style={s.pagination}>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={s.pageBtn}
+            >
+              <ChevronLeft size={16} /> Prev
+            </button>
+            <span style={s.pageInfo}>Page {page} of {pagination.totalPages}</span>
+            <button
+              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+              disabled={page === pagination.totalPages}
+              style={s.pageBtn}
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 const s = {
-  root: { minHeight: '100vh', background: '#040811', color: '#eef0f8', fontFamily: "'Outfit', sans-serif" },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' },
-  headerLeft: { display: 'flex', alignItems: 'center', gap: 14 },
-  logoMark: { width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #6c63ff, #00d4aa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, flexShrink: 0 },
-  headerTitle: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 18 },
-  headerSub: { fontSize: 13, color: 'rgba(238,240,248,0.4)', marginTop: 2 },
-  logoutBtn: { background: 'rgba(255,94,122,0.1)', border: '1px solid rgba(255,94,122,0.2)', borderRadius: 10, color: '#ff5e7a', fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 500, padding: '8px 18px', cursor: 'pointer' },
-  statsRow: { display: 'flex', gap: 12, padding: '20px 32px', flexWrap: 'wrap' },
-  statChip: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, minWidth: 120 },
-  chipIcon: { fontSize: 20 },
-  chipVal: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 18, color: '#9b94ff' },
-  chipLabel: { fontSize: 12, color: 'rgba(238,240,248,0.4)' },
-  body: { display: 'flex', height: 'calc(100vh - 140px)', overflow: 'hidden' },
-  listPanel: { width: 340, minWidth: 280, borderRight: '1px solid rgba(255,255,255,0.06)', overflowY: 'auto', padding: '16px 12px' },
-  filterBar: { marginBottom: 12 },
-  filterInput: { width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: '#eef0f8', fontFamily: "'Outfit', sans-serif", fontSize: 13, outline: 'none' },
-  loading: { textAlign: 'center', color: 'rgba(238,240,248,0.4)', padding: 40, fontSize: 14 },
-  empty: { textAlign: 'center', color: 'rgba(238,240,248,0.4)', padding: '60px 20px' },
-  subCard: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px', marginBottom: 10, cursor: 'pointer', transition: 'all 0.2s' },
-  subCardActive: { background: 'rgba(108,99,255,0.12)', borderColor: 'rgba(108,99,255,0.3)' },
-  subTop: { display: 'flex', justifyContent: 'space-between', marginBottom: 8 },
-  subTopic: { fontWeight: 600, fontSize: 14, color: '#eef0f8' },
-  subScore: { fontWeight: 700, fontSize: 15, fontFamily: "'Space Grotesk', sans-serif" },
-  subMeta: { display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
-  subBadge: { fontSize: 11, background: 'rgba(108,99,255,0.15)', borderRadius: 6, padding: '2px 8px', color: '#9b94ff' },
-  subBadge2: { fontSize: 11, background: 'rgba(0,212,170,0.1)', borderRadius: 6, padding: '2px 8px', color: '#00d4aa' },
-  subDate: { fontSize: 11, color: 'rgba(238,240,248,0.3)' },
-  pagination: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 4px', marginTop: 4 },
-  pageBtn: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 14px', color: '#eef0f8', fontSize: 12, cursor: 'pointer' },
-  detailPanel: { flex: 1, overflowY: 'auto', padding: 32 },
-  detailEmpty: { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(238,240,248,0.4)', textAlign: 'center' },
-  detailContent: { maxWidth: 800 },
-  detailHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
-  detailTopic: { fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 700 },
-  detailDate: { fontSize: 13, color: 'rgba(238,240,248,0.4)', marginTop: 4 },
-  detailActions: { display: 'flex', alignItems: 'center', gap: 12 },
-  detailScore: { fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 800 },
-  deleteBtn: { background: 'rgba(255,94,122,0.1)', border: '1px solid rgba(255,94,122,0.2)', borderRadius: 8, color: '#ff5e7a', cursor: 'pointer', fontSize: 16, padding: '6px 10px' },
-  detailBadge: { fontSize: 12, background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.2)', borderRadius: 8, padding: '3px 10px', color: '#9b94ff', textTransform: 'capitalize' },
-  section: { marginBottom: 24 },
-  sectionLabel: { fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(238,240,248,0.35)', fontWeight: 700, marginBottom: 10 },
-  questionTitle: { fontWeight: 600, fontSize: 16, marginBottom: 8 },
-  questionDesc: { fontSize: 14, lineHeight: 1.7, color: 'rgba(238,240,248,0.7)' },
-  resultBox: { background: 'rgba(255,255,255,0.03)', border: '1px solid', borderRadius: 14, padding: 16 },
-  codeBlock: { background: 'rgba(0,0,0,0.3)', borderRadius: 10, padding: 14, fontSize: 13, fontFamily: 'monospace', marginTop: 10, overflowX: 'auto', lineHeight: 1.6, color: '#c5c8d0', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-  reviewCard: { background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.15)', borderRadius: 14, padding: 20 },
-  reviewSubLabel: { fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(238,240,248,0.4)', fontWeight: 700, marginBottom: 8 },
+  root: {
+    padding: '28px 32px',
+    maxWidth: 1000,
+    margin: '0 auto',
+    color: '#eef0f8',
+    fontFamily: "'Outfit', sans-serif",
+  },
+  statsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: 16,
+    marginBottom: 32,
+  },
+  statCard: {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: 18,
+    padding: '20px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+  },
+  statIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.04)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  statValue: {
+    fontSize: 26,
+    fontWeight: 800,
+    fontFamily: "'Space Grotesk', sans-serif",
+    lineHeight: 1,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(238,240,248,0.45)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    fontWeight: 600,
+  },
+  section: {},
+  sectionTitle: {
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 16,
+    color: '#fff',
+  },
+  empty: {
+    textAlign: 'center',
+    color: 'rgba(238,240,248,0.4)',
+    padding: '60px 0',
+    fontSize: 14,
+  },
+  list: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+  },
+  card: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    background: 'rgba(255,255,255,0.025)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    padding: '16px 20px',
+    transition: 'border-color 0.2s',
+  },
+  cardLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    flex: 1,
+    minWidth: 0,
+  },
+  statusIcon: {
+    flexShrink: 0,
+  },
+  topic: {
+    fontWeight: 600,
+    fontSize: 15,
+    color: '#eef0f8',
+    marginBottom: 5,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  meta: {
+    display: 'flex',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  badge: {
+    fontSize: 11,
+    background: 'rgba(108,99,255,0.12)',
+    borderRadius: 6,
+    padding: '2px 8px',
+    color: '#9b94ff',
+    textTransform: 'capitalize',
+  },
+  dateCell: {
+    fontSize: 13,
+    color: 'rgba(238,240,248,0.4)',
+    whiteSpace: 'nowrap',
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  scoreCell: {
+    fontSize: 22,
+    fontWeight: 800,
+    fontFamily: "'Space Grotesk', sans-serif",
+    flexShrink: 0,
+    minWidth: 60,
+    textAlign: 'right',
+  },
+  resultCell: {
+    fontSize: 13,
+    fontWeight: 600,
+    flexShrink: 0,
+    minWidth: 80,
+    textAlign: 'right',
+  },
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 24,
+  },
+  pageBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: '8px 16px',
+    color: '#eef0f8',
+    fontSize: 13,
+    cursor: 'pointer',
+    fontFamily: "'Outfit', sans-serif",
+  },
+  pageInfo: {
+    color: 'rgba(238,240,248,0.4)',
+    fontSize: 13,
+  },
 };

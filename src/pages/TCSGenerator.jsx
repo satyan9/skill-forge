@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { generateTCSQuestions } from '../utils/ai';
 import { executeCode } from '../utils/compiler';
-import { Loader2, AlertTriangle, Play, CheckCircle2, XCircle, ExternalLink, Key, Terminal, Code, HelpCircle, Brain } from 'lucide-react';
+import { Loader2, AlertTriangle, Play, Key, Terminal, Code, HelpCircle, Brain } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
+import { useSubmissions } from '../utils/useSubmissions';
 import './TCSGenerator.css';
 
 export default function TCSGenerator() {
+  const { saveSubmission } = useSubmissions();
   const [view, setView] = useState('config'); // config, loading, quiz, score, review
   const [config, setConfig] = useState(() => {
     const saved = localStorage.getItem('tcs_config');
@@ -146,9 +148,58 @@ export default function TCSGenerator() {
     }
   };
 
-  const submitQuiz = () => {
+  const submitQuiz = async () => {
     const left = answers.filter(a => a === -1 || (typeof a === 'string' && a.includes('# Write your code here'))).length;
     if (left > 0 && !window.confirm(`You have ${left} unanswered/unstarted questions. Submit anyway?`)) return;
+
+    // Calculate score with LIVE state values (no stale closure)
+    const mcqs = questions.filter(q => q.type !== 'coding');
+    const correctMCQCount = mcqs.filter(q => answers[questions.indexOf(q)] === q.correct).length;
+    const passedCodingCount = Object.values(codingPasses).filter(v => v === true).length;
+    const totalPoints = mcqs.length + (Object.keys(codingPasses).length > 0 ? 3 : 0);
+    const earnedPoints = correctMCQCount + passedCodingCount;
+    const pct = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+
+    const moduleMap = {
+      'Numerical Ability': 'Numerical',
+      'Verbal Ability': 'Verbal',
+      'Reasoning Ability': 'Reasoning',
+      'Programming Logic': 'Programming',
+    };
+    const primarySection = config.sections[0] || 'Programming Logic';
+    const topic = moduleMap[primarySection] || primarySection;
+    const status = pct >= 70 ? 'completed' : pct >= 40 ? 'partial' : 'failed';
+
+    // Save to MongoDB immediately while all state is fresh
+    try {
+      await saveSubmission({
+        topic,
+        difficulty: config.difficulty,
+        language: codingLanguage,
+        questionType: config.sections.includes('Programming Logic') ? 'mixed' : 'mcq',
+        score: pct,
+        timeTaken: totalTime - timeLeft,
+        status,
+        executionResult: {
+          passed: pct >= 70,
+          testsPassed: earnedPoints,
+          testsTotal: totalPoints,
+        },
+        question: {
+          title: `${config.sections.join(' + ')} — ${config.difficulty}`,
+          description: `${questions.length} questions`,
+        },
+        userCode: answers.filter(a => typeof a === 'string').join('\n\n---\n\n'),
+        review: {
+          summary: `Scored ${pct}% on ${topic} module at ${config.difficulty} level.`,
+          verdict: pct >= 70 ? 'Pass' : 'Needs Improvement',
+        },
+      });
+      console.log('Submission saved successfully');
+    } catch (err) {
+      console.error('Failed to save submission:', err);
+    }
+
     setView('score');
   };
 

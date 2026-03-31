@@ -8,6 +8,7 @@ import JSONFormatter from './pages/JSONFormatter';
 import RegexTester from './pages/RegexTester';
 import AuthPage from './pages/AuthPage';
 import HistoryPage from './pages/HistoryPage';
+import ProfilePage from './pages/ProfilePage';
 import './index.css';
 
 function AppLayout({ children }) {
@@ -61,6 +62,14 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <RegexTester />
+              </AppLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ProfilePage />
               </AppLayout>
             </ProtectedRoute>
           } />

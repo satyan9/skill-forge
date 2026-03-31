@@ -1,4 +1,5 @@
-import { Search, Bell, Menu, UserCircle } from 'lucide-react';
+import { Search, Bell, UserCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const topbarStyles = `
   .topbar {
@@ -57,6 +58,8 @@ const topbarStyles = `
 `;
 
 export default function Topbar() {
+  const navigate = useNavigate();
+
   return (
     <>
       <style>{topbarStyles}</style>
@@ -70,7 +73,7 @@ export default function Topbar() {
           <button className="action-btn">
             <Bell size={20} />
           </button>
-          <button className="action-btn">
+          <button className="action-btn" onClick={() => navigate('/profile')} title="View Profile">
             <UserCircle size={24} />
           </button>
         </div>
