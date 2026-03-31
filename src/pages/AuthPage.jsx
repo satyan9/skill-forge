@@ -168,7 +168,7 @@ export default function AuthPage() {
       setStep(2);
       setResendTimer(30);
       setTimeout(() => otpRefs.current[0]?.focus(), 300);
-    } catch { setError('Network error. Is the server running on port 5000?'); }
+    } catch { setError('Network error. Please check your internet connection.'); }
     finally { setLoading(false); }
   }
 
@@ -254,7 +254,7 @@ export default function AuthPage() {
       if (!data.success) { setError(data.message || 'Login failed.'); return; }
       login(data.token, data.user, rememberMe);
       setDone(true);
-      setTimeout(() => navigate('/skill-forge', { replace: true }), 1500);
+      setTimeout(() => navigate('/skill-pilot', { replace: true }), 1500);
     } catch { setError('Network error. Is the server running?'); }
     finally { setLoading(false); }
   }
