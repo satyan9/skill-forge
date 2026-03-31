@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://skill-forge-backend-8si8.onrender.com/api' : 'http://localhost:5000/api');
+const API_BASE = import.meta.env.PROD ? 'https://skill-forge-backend-8si8.onrender.com/api' : 'http://localhost:5000/api';
+/* (If you want to use the dashboard variable, make sure it has /api at the end!) */
 
 const AuthContext = createContext(null);
+
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
