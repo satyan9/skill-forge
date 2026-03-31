@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://skill-forge-backend-8si8.onrender.com' : 'http://localhost:5000/api');
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://skill-forge-backend-8si8.onrender.com/api' : 'http://localhost:5000/api');
 
 const AuthContext = createContext(null);
 
