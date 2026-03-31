@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { FileJson, Rainbow, Code2, Brain } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,6 +13,13 @@ const sidebarStyles = `
     font-size: 20px;
     font-weight: 700;
     gap: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .sidebar-header:hover {
+    opacity: 0.8;
   }
   .sidebar-icon {
     display: inline-flex;
@@ -101,13 +108,14 @@ const sidebarStyles = `
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const initial = user?.name ? user.name[0].toUpperCase() : '?';
 
   return (
     <>
       <style>{sidebarStyles}</style>
       <div className="sidebar" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="sidebar-header">
+        <div className="sidebar-header" onClick={() => navigate('/skill-forge')} title="Go to Home">
           <div className="sidebar-icon">
             <Brain size={18} />
           </div>

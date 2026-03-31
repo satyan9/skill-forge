@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -28,53 +29,57 @@ function AppLayout({ children }) {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public auth route */}
-          <Route path="/auth" element={<AuthPage />} />
+      <NotificationProvider>
+        <Router>
+          <Routes>
+            {/* Public auth route */}
+            <Route path="/auth" element={<AuthPage />} />
 
-          {/* Protected app routes */}
-          <Route path="/" element={<Navigate to="/skill-forge" replace />} />
+            {/* Protected app routes */}
+            <Route path="/" element={<Navigate to="/skill-forge" replace />} />
 
-          <Route path="/skill-forge" element={
-            <ProtectedRoute>
-              <AppLayout>
-                <TCSGenerator />
-              </AppLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/skill-forge" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <TCSGenerator />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/history" element={
-            <ProtectedRoute>
-              <HistoryPage />
-            </ProtectedRoute>
-          } />
+            <Route path="/history" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <HistoryPage />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/json-formatter" element={
-            <ProtectedRoute>
-              <AppLayout>
-                <JSONFormatter />
-              </AppLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/json-formatter" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <JSONFormatter />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/regex-tester" element={
-            <ProtectedRoute>
-              <AppLayout>
-                <RegexTester />
-              </AppLayout>
-            </ProtectedRoute>
-          } />
+            <Route path="/regex-tester" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <RegexTester />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ProfilePage />
-              </AppLayout>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProfilePage />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
