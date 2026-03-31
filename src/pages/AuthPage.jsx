@@ -24,6 +24,7 @@ export default function AuthPage() {
   const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [rememberMe, setRememberMe] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [preAuthToken, setPreAuthToken] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
@@ -127,13 +128,13 @@ export default function AuthPage() {
   /* ── SEND OTP ── */
   async function sendOtp() {
     setError(''); setSuccessMsg('');
-    if (!form.name.trim()) { setError('Please enter your full name.'); return; }
+    if (mode === 'signup' && !form.name.trim()) { setError('Please enter your full name.'); return; }
     if (!form.email || !/^\S+@\S+\.\S+$/.test(form.email)) { setError('Please enter a valid email address.'); return; }
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/auth/send-otp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, purpose: 'register' }),
+        body: JSON.stringify({ email: form.email, purpose: mode === 'forgot' ? 'reset' : 'register' }),
       });
       const data = await res.json();
       if (!data.success) { setError(data.message || 'Failed to send OTP.'); return; }
@@ -155,7 +156,7 @@ export default function AuthPage() {
     try {
       const res = await fetch(`${API_BASE}/auth/verify-otp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, otp: code, purpose: 'register' }),
+        body: JSON.stringify({ email: form.email, otp: code, purpose: mode === 'forgot' ? 'reset' : 'register' }),
       });
       const data = await res.json();
       if (!data.success) { setError(data.message || 'Invalid OTP.'); return; }
@@ -183,9 +184,33 @@ export default function AuthPage() {
         if (data.message?.includes('verification')) setStep(2);
         return;
       }
-      login(data.token, data.user);
+      login(data.token, data.user, true);
       setDone(true);
       setTimeout(() => navigate('/skill-forge', { replace: true }), 1800);
+    } catch { setError('Network error.'); }
+    finally { setLoading(false); }
+  }
+
+  /* ── RESET PASSWORD ── */
+  async function handleResetPassword() {
+    setError('');
+    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (form.password !== form.confirm) { setError('Passwords do not match.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/reset-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password, preAuthToken }),
+      });
+      const data = await res.json();
+      if (!data.success) { setError(data.message || 'Reset failed.'); return; }
+      setSuccessMsg('Password has been reset successfully!');
+      setTimeout(() => {
+        setMode('login');
+        setStep(1);
+        setForm({ ...form, password: '', confirm: '' });
+        setSuccessMsg('');
+      }, 2000);
     } catch { setError('Network error.'); }
     finally { setLoading(false); }
   }
@@ -202,7 +227,7 @@ export default function AuthPage() {
       });
       const data = await res.json();
       if (!data.success) { setError(data.message || 'Login failed.'); return; }
-      login(data.token, data.user);
+      login(data.token, data.user, rememberMe);
       setDone(true);
       setTimeout(() => navigate('/skill-forge', { replace: true }), 1500);
     } catch { setError('Network error. Is the server running?'); }
@@ -219,7 +244,7 @@ export default function AuthPage() {
         });
         const data = await res.json();
         if (!data.success) { setError(data.message || 'Google sign-in failed.'); return; }
-        login(data.token, data.user);
+        login(data.token, data.user, true);
         navigate('/skill-forge', { replace: true });
       } catch { setError('Google sign-in failed.'); }
     });
@@ -227,8 +252,8 @@ export default function AuthPage() {
 
   function showToast(msg) { setError(msg); setTimeout(() => setError(''), 4000); }
 
-  function flip() {
-    setMode(m => m === 'login' ? 'signup' : 'login');
+  function flip(newMode) {
+    setMode(typeof newMode === 'string' ? newMode : (mode === 'login' ? 'signup' : 'login'));
     setStep(1); setError(''); setSuccessMsg('');
     setForm({ name: '', email: '', password: '', confirm: '' });
     setOtp(['', '', '', '', '', '']);
@@ -242,7 +267,7 @@ export default function AuthPage() {
     try {
       const res = await fetch(`${API_BASE}/auth/send-otp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, purpose: 'register' }),
+        body: JSON.stringify({ email: form.email, purpose: mode === 'forgot' ? 'reset' : 'register' }),
       });
       const data = await res.json();
       if (data.success) {
@@ -294,11 +319,17 @@ export default function AuthPage() {
                 </Field>
 
                 <div style={s.rowFlex}>
-                  <label style={s.checkLabel}><input type="checkbox" style={{ display: 'none' }} /><span style={s.checkBox} />Remember me</label>
-                  <a href="#" style={s.link}>Forgot password?</a>
+                  <label style={s.checkLabel}>
+                    <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} style={{ display: 'none' }} />
+                    <span style={{ ...s.checkBox, borderColor: rememberMe ? '#6c63ff' : 'rgba(255,255,255,.12)' }}>
+                      {rememberMe && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                    </span>
+                    Remember me
+                  </label>
+                  <a href="#" onClick={(e) => { e.preventDefault(); flip('forgot'); }} style={s.link}>Forgot password?</a>
                 </div>
 
-                <Btn loading={loading} text="Sign In" />
+                <Btn type="submit" loading={loading} text="Sign In" />
               </form>
 
               <SocialSection onGoogle={handleGoogle} onFacebook={() => showToast('Facebook coming soon!')} onGithub={() => showToast('GitHub coming soon!')} />
@@ -387,6 +418,85 @@ export default function AuthPage() {
                     <input name="confirm" type="password" value={form.confirm} onChange={handleChange} placeholder="Repeat your password" style={s.input} autoComplete="new-password" />
                   </Field>
                   <Btn loading={loading} text="Create Account ⚡" onClick={completeSignup} />
+                </>
+              )}
+            </>
+          )}
+
+          {/* ─── FORGOT PASSWORD ─── */}
+          {mode === 'forgot' && (
+            <>
+              <div style={s.stepDots}>
+                {[1,2,3].map(n => (
+                  <div key={n} style={{ ...s.stepDot, background: n < step ? '#00d4aa' : n === step ? '#6c63ff' : 'rgba(255,255,255,.1)' }} />
+                ))}
+                <span style={s.stepLabel}>Step {step} of 3</span>
+              </div>
+
+              {error && <div style={s.errorBox}>⚠ {error}</div>}
+              {successMsg && <div style={s.successBox}>✉ {successMsg}</div>}
+
+              {/* Step 1: Request Email */}
+              {step === 1 && (
+                <>
+                  <h1 style={s.heading}>Reset<br /><em style={s.em}>password.</em></h1>
+                  <p style={s.sub}>Enter your email to receive a reset code</p>
+                  <Field label="Email Address" icon="email">
+                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" style={s.input} autoComplete="email" />
+                  </Field>
+                  <Btn loading={loading} text="Send Reset Code →" onClick={sendOtp} />
+                  <div style={s.switchPrompt}>Remember your password? <button style={s.switchBtn} onClick={() => flip('login')}>← Sign in</button></div>
+                </>
+              )}
+
+              {/* Step 2: Enter OTP */}
+              {step === 2 && (
+                <>
+                  <h1 style={s.heading}>Verify your<br /><em style={s.em}>email.</em></h1>
+                  <p style={s.sub}>Enter the 6-digit code sent to {form.email}</p>
+                  <div style={s.otpRow}>
+                    {otp.map((d, i) => (
+                      <input
+                        key={i} ref={el => otpRefs.current[i] = el}
+                        value={d} maxLength={1} inputMode="numeric"
+                        onChange={e => handleOtpChange(i, e.target.value)}
+                        onKeyDown={e => handleOtpKeyDown(i, e)}
+                        onPaste={handleOtpPaste}
+                        style={{ ...s.otpDigit, ...(d ? s.otpFilled : {}) }}
+                      />
+                    ))}
+                  </div>
+                  <Btn loading={loading} text="Verify Code" onClick={verifyOtp} />
+                  <div style={s.resendRow}>
+                     Didn't receive it?&nbsp;
+                     <button onClick={resendOtp} disabled={resendTimer > 0} style={{ ...s.switchBtn, ...(resendTimer > 0 ? { color: 'var(--muted)', cursor: 'default' } : {}) }}>
+                       Resend {resendTimer > 0 ? `(${resendTimer}s)` : ''}
+                     </button>
+                  </div>
+                  <div style={{ ...s.switchPrompt, marginTop: 12 }}><button style={s.switchBtn} onClick={() => { setStep(1); setError(''); }}>← Change email</button></div>
+                </>
+              )}
+
+              {/* Step 3: New Password */}
+              {step === 3 && (
+                <>
+                  <h1 style={s.heading}>Set New<br /><em style={s.em}>password!</em></h1>
+                  <p style={s.sub}>Create a new strong password for your account</p>
+                  <Field label="New Password" icon="lock">
+                    <input name="password" type="password" value={form.password}
+                      onChange={e => { handleChange(e); checkStrength(e.target.value); }}
+                      placeholder="Create a strong password" style={s.input} autoComplete="new-password" />
+                  </Field>
+                  {/* strength bar */}
+                  <div style={{ display: 'flex', gap: 4, marginBottom: 4, marginTop: -10 }}>
+                    {[1,2,3,4].map(i => <div key={i} style={{ flex:1,height:3,borderRadius:2,background:i<=strength?strengthColors[strength]:'rgba(255,255,255,.08)',transition:'background .3s' }} />)}
+                  </div>
+                  {strength > 0 && <div style={{ fontSize:11,color:strengthColors[strength],marginBottom:14 }}>{strengthLabels[strength]}</div>}
+
+                  <Field label="Confirm New Password" icon="lock">
+                    <input name="confirm" type="password" value={form.confirm} onChange={handleChange} placeholder="Repeat your new password" style={s.input} autoComplete="new-password" />
+                  </Field>
+                  <Btn loading={loading} text="Reset Password ⚡" onClick={handleResetPassword} />
                 </>
               )}
             </>

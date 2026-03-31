@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('sf_token'));
+  const [token, setToken] = useState(() => localStorage.getItem('sf_token') || sessionStorage.getItem('sf_token'));
   const [loading, setLoading] = useState(true);
 
   // Verify token on mount
@@ -30,9 +30,14 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  function login(newToken, newUser) {
-    localStorage.setItem('sf_token', newToken);
-    localStorage.setItem('sf_user', JSON.stringify(newUser));
+  function login(newToken, newUser, rememberMe = true) {
+    if (rememberMe) {
+      localStorage.setItem('sf_token', newToken);
+      localStorage.setItem('sf_user', JSON.stringify(newUser));
+    } else {
+      sessionStorage.setItem('sf_token', newToken);
+      sessionStorage.setItem('sf_user', JSON.stringify(newUser));
+    }
     setToken(newToken);
     setUser(newUser);
   }
@@ -40,6 +45,8 @@ export function AuthProvider({ children }) {
   function logout() {
     localStorage.removeItem('sf_token');
     localStorage.removeItem('sf_user');
+    sessionStorage.removeItem('sf_token');
+    sessionStorage.removeItem('sf_user');
     setToken(null);
     setUser(null);
   }
