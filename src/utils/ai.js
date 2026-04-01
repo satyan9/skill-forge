@@ -1,6 +1,6 @@
 export async function generateTCSQuestions(provider, apiKey, sections, difficulty, numQ) {
   const perSec = Math.ceil(numQ / sections.length);
-  const prompt = `You are SkillForge AI, an elite technical interview and assessment platform. Generate exactly ${numQ} high-quality questions for a professional technical examination.
+  const prompt = `You are Skillpilot AI, an elite technical interview and assessment platform. Generate exactly ${numQ} high-quality questions for a professional technical examination.
 
 Sections to cover (distribute evenly): ${sections.join(', ')}
 Difficulty: ${difficulty}

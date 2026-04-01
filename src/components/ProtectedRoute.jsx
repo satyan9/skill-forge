@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }) {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
-          Loading SkillForge…
+          Loading Skillpilot…
         </div>
       </div>
     );

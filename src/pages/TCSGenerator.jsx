@@ -651,7 +651,7 @@ export default function TCSGenerator() {
     <div className="flex items-center justify-center h-full">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="animate-spin text-indigo-500" size={40} />
-        <span className="text-gray-400 font-medium">Initializing SkillForge...</span>
+        <span className="text-gray-400 font-medium">Initializing Skillpilot...</span>
       </div>
     </div>
   );
